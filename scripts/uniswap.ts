@@ -3,19 +3,19 @@ import { BigNumber } from "ethers";
 import { providers } from "ethers";
 
 async function main() {
-  //TokenBswap router address
+  //uniswap router address
   const ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-  //TokenA token address
-  const TokenA = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-  //TokenB token address
-  const TokenB = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
-  //TokenA holder
-  const TokenAHolder = "0x748dE14197922c4Ae258c7939C7739f3ff1db573";
+  //dai token address
+  const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  //uni token address
+  const UNI = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
+  //dai holder
+  const DAIHolder = "0x748dE14197922c4Ae258c7939C7739f3ff1db573";
 
-  const paths = [TokenA, "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0", TokenB];
-  const path2 = ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", TokenA];
+  const paths = [DAI, "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0", UNI];
+  const path2 = ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", DAI];
 
-  const path3 = ["0x748dE14197922c4Ae258c7939C7739f3ff1db573", TokenA];
+  const path3 = ["0x748dE14197922c4Ae258c7939C7739f3ff1db573", DAI];
   let time = 1976588399;
 
   const amountToSwap = await ethers.utils.parseEther("100");
@@ -24,24 +24,24 @@ async function main() {
   const amountToReceive = await ethers.utils.parseEther("100");
   console.log(amountToSwap);
 
-  const TokenBswap = await ethers.getContractAt("ITokenBswap", ROUTER);
+  const Uniswap = await ethers.getContractAt("Iuniswap", ROUTER);
 
   const helpers = require("@nomicfoundation/hardhat-network-helpers");
-  await helpers.impersonateAccount(TokenAHolder);
-  const impersonatedSigner = await ethers.getSigner(TokenAHolder);
+  await helpers.impersonateAccount(DAIHolder);
+  const impersonatedSigner = await ethers.getSigner(DAIHolder);
 
-  const TokenAContract = await ethers.getContractAt("IToken", TokenA);
+  const DaiContract = await ethers.getContractAt("IToken", DAI);
 
-  const TokenBContract = await ethers.getContractAt("IToken", TokenB);
+  const UniContract = await ethers.getContractAt("IToken", UNI);
 
-  const holderBalance = await TokenAContract.balanceOf(TokenAHolder);
-  console.log(`TokenA balance before ${holderBalance}`);
+  const holderBalance = await DaiContract.balanceOf(DAIHolder);
+  console.log(`Dai balance before ${holderBalance}`);
 
-  await TokenAContract.connect(impersonatedSigner).approve(ROUTER, amountToSwap);
-  await TokenBContract.connect(impersonatedSigner).approve(ROUTER, amountToSwap);
+  await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountToSwap);
+  await UniContract.connect(impersonatedSigner).approve(ROUTER, amountToSwap);
 
-  const TokenBBalance = await TokenBContract.balanceOf(TokenAHolder);
-  console.log(`TokenBBalance ${TokenBBalance}`);
+  const uniBalance = await UniContract.balanceOf(DAIHolder);
+  console.log(`uniBalance ${uniBalance}`);
 
   const amountAdesired = await ethers.utils.parseEther("0.1");
   console.log(amountAdesired);
@@ -56,16 +56,16 @@ async function main() {
   const amountBMin = await ethers.utils.parseEther("0.01");
   console.log(amountBMin);
 
-  await TokenAContract.connect(impersonatedSigner).approve(ROUTER, amountAdesired);
-  await TokenBContract.connect(impersonatedSigner).approve(ROUTER, amountBdesired);
- const addLiquidity = await TokenBswap.connect(impersonatedSigner).addLiquidity(
-    TokenA,
-    TokenB,
+  await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountAdesired);
+  await UniContract.connect(impersonatedSigner).approve(ROUTER, amountBdesired);
+ const addLiquidity = await Uniswap.connect(impersonatedSigner).addLiquidity(
+    DAI,
+    UNI,
     amountAdesired,
     amountBdesired,
     amountAMin,
     amountBMin,
-    TokenAHolder,
+    DAIHolder,
     time
   );
   console.log(addLiquidity);
@@ -78,12 +78,12 @@ async function main() {
   const amountethmin = await ethers.utils.parseEther("100");
   console.log(amountethmin)
 
-  const addLiquidityETH = await TokenBswap.connect(impersonatedSigner).addLiquidityETH(
-    TokenA,
+  const addLiquidityETH = await Uniswap.connect(impersonatedSigner).addLiquidityETH(
+    DAI,
     amounttokendesired,
     amounttokenmin,
     amountethmin,
-    TokenAHolder,
+    DAIHolder,
     time
   );
   console.log(addLiquidityETH);
@@ -93,16 +93,16 @@ async function main() {
   console.log(liqamountBMin);
 
   const liquidity = await ethers.utils.parseEther("0.001");
-  await TokenBContract.connect(impersonatedSigner).approve(ROUTER, liquidity);
+  await UniContract.connect(impersonatedSigner).approve(ROUTER, liquidity);
   
 
-  const removeLiquidity = await TokenBswap.connect(impersonatedSigner).removeLiquidity(
-    TokenA,
-    TokenB,
+  const removeLiquidity = await Uniswap.connect(impersonatedSigner).removeLiquidity(
+    DAI,
+    UNI,
     liquidity,
     liqamountAMin,
     liqamountBMin,
-    TokenA,
+    DAI,
     time
   );
   console.log(removeLiquidity);
